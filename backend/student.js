@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const sessionSchema = new mongoose.Schema({
     date: {
         type: String,
@@ -21,7 +22,7 @@ const sessionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    confirmation: {
+    receipt: {
         type: String,
         required: true
     }
