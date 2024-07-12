@@ -6,7 +6,7 @@ function CreateStudent() {
     const defaultFormData = () => ({
         name: '',
         course: '',
-        rate: '',
+        rate: '10',
         currency: '',
         meetLink: 'example.com/meetLink',
         whiteboardLink: 'example.com/whiteboardLink',
@@ -18,7 +18,7 @@ function CreateStudent() {
     const handleChange = (event, index) => {
         const eventName = event.target.name;
         const eventValue = event.target.value;
-        if (eventName === 'taken' || eventName === 'paid') {
+        if (eventName === 'paid') {
             const newSessions = [...formData.sessions];
             newSessions[index][eventName] = event.target.checked;
             setFormData({ ...formData, sessions: newSessions });
@@ -39,11 +39,12 @@ function CreateStudent() {
             sessions: [
             ...formData.sessions,
             {
-                date: '',
-                price: '',
-                pdf: 'example.com/pdf',
-                taken: false,
-                paid: false
+                date: '2010-10-10',
+                price: '10',
+                status: '',
+                paid: false,
+                notes: 'example.com/notes',
+                receipt: 'example.com/receipt'
             }
             ]
         });
@@ -126,8 +127,8 @@ function CreateStudent() {
                 {/* Sessions */}
                 {formData.sessions.map((session, index) => (
                     <div key={index}>
-                        <h2 className="text-lg font-bold mb-2">Session {index + 1}</h2>
-                        <div className="mb-4">
+                    <h2 className="text-lg font-bold mb-2">Session {index + 1}</h2>
+                    <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`date_${index}`}>Date</label>
                         <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`date_${index}`} type="date" placeholder="Date" name="date" value={session.date} onChange={(e) => handleChange(e, index)} required />
                     </div>
@@ -135,23 +136,42 @@ function CreateStudent() {
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`price_${index}`}>Price</label>
                         <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`price_${index}`} type="number" placeholder="Price" name="price" value={session.price} onChange={(e) => handleChange(e, index)} required />
                     </div>
+                    
+                    <div className="grid grid-cols-5 gap-2 mb-4">
+                        <div className="flex items-center col-span-3">
+                            <label className="block text-gray-700 text-sm font-bold" htmlFor={`status_${index}`}>Status</label>
+                        </div>
+                        <div className="flex items-center col-span-2">
+                            <label className="block text-gray-700 text-sm font-bold" htmlFor={`paid_${index}`}>Paid</label>
+                        </div>
+                        <div className = "col-span-3">
+                            <select className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${session.status === '' ? 'text-gray-400' : ''}`} value={session.status} name="status" onChange={(e) => handleChange(e, index)}>
+                            <option value="" style={{ color: '#6b7280' }}>Select</option>
+                            <option value="requested" style={{ color: '#000000' }}>Requested</option>
+                            <option value="confirmed" style={{ color: '#000000' }}>Confirmed</option>
+                            <option value="done" style={{ color: '#000000' }}>Done</option>
+                            </select>
+                        </div>
+                        <div className="col-span-2">
+                            <input className="shadow bg-white border h-full w-full py-2 px-3 rounded focus:outline-none focus:shadow-outline"
+                                id={`paid_${index}`} 
+                                type="checkbox" 
+                                checked={session.paid} 
+                                onChange={(e) => handleChange(e, index)} 
+                                name="paid" 
+                            />
+                        </div>
+                    </div>
+
                     <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`pdf_${index}`}>PDF URL</label>
-                        <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`pdf_${index}`} type="text" placeholder="PDF URL" name="pdf" value={session.pdf} onChange={(e) => handleChange(e, index)} required />
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`pdf_${index}`}>Notes</label>
+                        <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`notes_${index}`} type="text" placeholder="Notes" name="notes" value={session.notes} onChange={(e) => handleChange(e, index)} required />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`taken_${index}`}>
-                        <input type="checkbox" id={`taken_${index}`} name="taken" checked={session.taken} onChange={(e) => handleChange(e, index)} />
-                        <span className="ml-2">Taken</span>
-                        </label>
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`receipt_${index}`}>Receipt</label>
+                        <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`receipt_${index}`} type="text" placeholder="Receipt" name="receipt" value={session.receipt} onChange={(e) => handleChange(e, index)} required />
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`paid_${index}`}>
-                        <input type="checkbox" id={`paid_${index}`} name="paid" checked={session.paid} onChange={(e) => handleChange(e, index)} />
-                        <span className="ml-2">Paid</span>
-                        </label>
-                    </div>
-                        <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" type="button" onClick={() => removeSession(index)}>Remove Session</button>
+                    <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mb-5" type="button" onClick={() => removeSession(index)}>Remove Session</button>
                     </div>
                 ))}
 
