@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-app.get('/api/students/all', async (req, res) => {
+app.get('/api/student/all', async (req, res) => {
     try {
         const result = await Student.find();
         if (!result) {
@@ -35,7 +35,7 @@ app.get('/api/students/all', async (req, res) => {
     }
 });
 
-app.get('/api/students/:id', async (req, res) => { // could do /api/students/:id/:name
+app.get('/api/student/:id', async (req, res) => { // could do /api/students/:id/:name
     // res.json({ requestParams: req.params,
     //     requestQuery: req.query });
     // console.log({ requestParams: req.params,
@@ -55,7 +55,7 @@ app.get('/api/students/:id', async (req, res) => { // could do /api/students/:id
     }
 });
 
-app.post('/api/students/create', async (req, res) => {
+app.post('/api/student/create', async (req, res) => {
     try {
         const student = new Student(req.body);
         await student.save();
@@ -66,7 +66,7 @@ app.post('/api/students/create', async (req, res) => {
     }
 });
 
-app.post('/api/students/clear', async (req, res) => {
+app.post('/api/student/clear', async (req, res) => {
     try {
         // Delete all documents from the Student collection
         const result = await Student.deleteMany({});

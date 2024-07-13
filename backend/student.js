@@ -12,7 +12,7 @@ const sessionSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        enum: ['requested', 'booked', 'taken']    
+        enum: ['requested', 'confirmed', 'done']    
     },
     paid: {
         type: Boolean,

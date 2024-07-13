@@ -16,19 +16,18 @@ function CreateStudent() {
     const [formData, setFormData] = useState(defaultFormData);
 
     const handleChange = (event, index) => {
-        const eventName = event.target.name;
-        const eventValue = event.target.value;
-        if (eventName === 'paid') {
+        const { name, value } = event.target;
+        if (name === 'paid') {
             const newSessions = [...formData.sessions];
-            newSessions[index][eventName] = event.target.checked;
+            newSessions[index][name] = event.target.checked;
             setFormData({ ...formData, sessions: newSessions });
         } else {
             if (index !== undefined) {
                 const newSessions = [...formData.sessions];
-                newSessions[index][eventName] = eventValue;
+                newSessions[index][name] = value;
                 setFormData({ ...formData, sessions: newSessions });
             } else {
-                setFormData({ ...formData, [eventName]: eventValue });
+                setFormData({ ...formData, [name]: value });
             }
         }
     };
