@@ -110,15 +110,26 @@ app.post('/', (req, res) => {
 
 
 const start = async () => {
-    try{
+    const startTime = process.hrtime();
+
+    try {
         await mongoose.connect(CONNECTION);
         app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+            const url = `http://localhost:${PORT}`;
+            const { version } = require('./package.json'); // Getting the version from package.json
+
+            const elapsedTime = process.hrtime(startTime); // Calculate elapsed time
+            const elapsedTimeMs = elapsedTime[0] * 1000 + elapsedTime[1] / 1e6; // Convert to milliseconds
+
+            console.log();
+            console.log(` \x1b[1m\x1b[31m EXPRESS \x1b[0m${version ? '\x1b[31mv' + version + ' ' : ''}\x1b[90m ready in \x1b[0m\x1b[1m\x1b[37m${elapsedTimeMs.toFixed(0)}\x1b[0m\x1b[37m ms \x1b[0m`);
+            console.log(` \x1b[1m\x1b[31m ➜ \x1b[0m\x1b[1m\x1b[37m Local:   \x1b[0m\x1b[36m${url.substring(0, url.lastIndexOf(':'))}:\x1b[1m${PORT}\x1b[0m\x1b[36m/`);
+            console.log("\x1b[0m");
+            
         });
+    } catch (error) {
+        console.error('Error starting server:', error);
     }
-    catch(error){
-        console.log(error);
-    }
-}
+};
 
 start();
