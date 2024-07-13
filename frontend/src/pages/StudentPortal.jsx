@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { set } from 'mongoose';
 
 
 function StudentPortal() {
   const { studentId } = useParams();
   const [student, setStudent] = useState(null);
   const [sessions, setSessions] = useState([]);
+
   const [selectedSection, setSelectedSection] = useState('information');
 
  
@@ -25,15 +27,41 @@ function StudentPortal() {
     fetchData();
   }, [studentId]);
   
-  const [dateInput, setDateInput] = useState('');
-  const [priceInput, setPriceInput] = useState('');
+  const [inputDate, setInputDate] = useState('');
+  const [inputPrice, setInputPrice] = useState('');
 
-  const inputChange = (event) => {
-    const { name, value } = event.target;
-    if (name === 'dateInput') {
-      setDateInput(value);
-    } else if (name === 'priceInput') {
-      setPriceInput(value);
+  const requestSession = async (e) => {
+    e.preventDefault();
+    try {
+        const response = await fetch(`http://localhost:3000/api/student/${studentId}/schedule`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                date: inputDate,
+                price: inputPrice,
+            })
+        });
+        if (response.ok) {
+            console.log('Session scheduled successfully');
+            setInputDate('');
+            setInputPrice('');
+
+            const updatedSessions = [...sessions, {
+              date: inputDate,
+              price: inputPrice,
+              status: 'requested',
+              paid: false,
+              notes: '',
+              receipt: ''
+            }];
+            setSessions(updatedSessions);
+        } else {
+            console.error('Failed to schedule session:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error scheduling session:', error);
     }
   };
 
@@ -87,14 +115,27 @@ function StudentPortal() {
           {selectedSection === 'classes' && (
             <div className="p-4">
               
-              <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`dateInput`}>Date</label>
-                  <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`dateInput`} type="date" placeholder="Date" name="dateInput" value={dateInput} onChange={(e) => inputChange(e)} required />
-              </div>
-              <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`priceInput`}>Price</label>
-                  <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`priceinput`} type="number" placeholder="Price" name="priceInput" value={priceInput} onChange={(e) => inputChange(e)} required />
-              </div>
+              <form>
+                <p>date is {inputDate} and price is {inputPrice}</p>
+                <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`inputDate`}>Date</label>
+                    <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`inputDate`} type="date" placeholder="Date" name="inputDate" value={inputDate} onChange={(e) => setInputDate(e.target.value)} required />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`inputPrice`}>Price</label>
+                    <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`inputPrice`} type="number" placeholder="Price" name="inputPrice" value={inputPrice} onChange={(e) => setInputPrice(e.target.value)} required min="0" max="1000" />
+                </div>
+
+                <div>
+                  <input type="reset" onClick={(e) => {setInputDate(''); setInputPrice('');}} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"/>
+                </div>
+
+                <div>
+                  <input type="submit" onClick={requestSession} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"/>
+                </div>
+
+              </form>
+
 
               {/* <div className="mb-4">
                 <DatePicker
@@ -130,6 +171,13 @@ function StudentPortal() {
                   </div>
                 </div>
               )} */}
+
+              <h3 className="text-lg font-bold mt-4 mb-2">Requested classes</h3>
+              <ul>
+                {sessions.filter(session => session.status == "requested").map(session => (
+                  <li key={session.id}>Date: {session.date} - Price: {session.price}</li>
+                ))}
+              </ul>
 
               <h3 className="text-lg font-bold mt-4 mb-2">Confirmed classes</h3>
               <ul>

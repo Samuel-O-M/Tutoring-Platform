@@ -35,12 +35,7 @@ app.get('/api/student/all', async (req, res) => {
     }
 });
 
-app.get('/api/student/:id', async (req, res) => { // could do /api/students/:id/:name
-    // res.json({ requestParams: req.params,
-    //     requestQuery: req.query });
-    // console.log({ requestParams: req.params,
-    //     requestQuery: req.query });
-    // const {id: studentId} = req.params;   takes the value of id and assigns it to studentId
+app.get('/api/student/:id', async (req, res) => {
     try{
         const studentId = req.params.id;
         const student = await Student.findById(studentId);
@@ -66,11 +61,42 @@ app.post('/api/student/create', async (req, res) => {
     }
 });
 
+app.patch('/api/student/:id/schedule', async (req, res) => {
+    const { id } = req.params;
+    const { date, price } = req.body;
+
+    if (!date || !price) {
+        return res.status(400).json({ error: 'Date and price are required' });
+    }
+
+    const newSession = {
+        date,
+        price,
+        status: 'requested',
+        paid: false,
+        notes: ' ',
+        receipt: ' '
+    };
+
+    try {
+        const student = await Student.findById(id);
+        if (!student) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+        else {
+            student.sessions.push(newSession);
+            await student.save();
+            res.json({ student });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred', details: error });
+    }
+});
+
+
 app.post('/api/student/clear', async (req, res) => {
     try {
-        // Delete all documents from the Student collection
-        const result = await Student.deleteMany({});
-        res.status(200).json({ message: 'Database cleared successfully', deletedCount: result.deletedCount });
+
     } catch (error) {
         console.error('Error clearing database:', error);
         res.status(500).json({ error: 'Internal Server Error' });
