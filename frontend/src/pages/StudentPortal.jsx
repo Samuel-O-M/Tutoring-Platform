@@ -30,7 +30,7 @@ function StudentPortal() {
   const [inputDate, setInputDate] = useState('');
   const [inputPrice, setInputPrice] = useState('');
 
-  const requestSession = async (e) => {
+  const handleRequestSession = async (e) => {
     e.preventDefault();
     try {
         const response = await fetch(`http://localhost:3000/api/student/${studentId}/schedule`, {
@@ -69,7 +69,8 @@ function StudentPortal() {
     <div>
       {student ? (
         <div>
-          <div className="bg-red-900 p-4 flex rounded-b-md shadow-md">
+          <div className="bg-red-900 p-4 flex rounded-b-md shadow-md"
+          >
             <button
               className={`flex-1 py-2 text-white transition-colors duration-300 ease-in-out mx-5 ${
                 selectedSection === 'information' ? 'bg-red-700 font-bold' : 'bg-red-900 hover:bg-red-800'
@@ -95,7 +96,7 @@ function StudentPortal() {
               Payments
             </button>
           </div>
-          
+
           {selectedSection === 'information' && (
             <div className="p-4">
               <p className="text-base mb-1">Name: {student.name}</p>
@@ -116,7 +117,6 @@ function StudentPortal() {
             <div className="p-4">
               
               <form>
-                <p>date is {inputDate} and price is {inputPrice}</p>
                 <div className="mb-4">
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={`inputDate`}>Date</label>
                     <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id={`inputDate`} type="date" placeholder="Date" name="inputDate" value={inputDate} onChange={(e) => setInputDate(e.target.value)} required />
@@ -131,7 +131,7 @@ function StudentPortal() {
                 </div>
 
                 <div>
-                  <input type="submit" onClick={requestSession} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"/>
+                  <input type="submit" onClick={handleRequestSession} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"/>
                 </div>
 
               </form>
@@ -200,13 +200,96 @@ function StudentPortal() {
             </div>
           )}
 
+          {/* Backend and handle functions need to be implemented */}
           {selectedSection === 'payments' && (
             <div className="p-4">
               
+              <h3 className="text-lg font-bold mt-4 mb-2">Upcoming classes</h3>
+              <ul>
+                {sessions.filter(session => session.status !== "done").map(session => (
+                  <li key={session.id} className="mb-4">
+                    <div>Date: {session.date} - Price: {session.price}</div>
+                    {session.receipt === " " ? (
+                      <div>
+                        <input 
+                          type="file" 
+                          className="border p-2 mt-2" 
+                          onChange={(e) => handleUploadReceipt(e, session.id)}
+                        />
+                        <button 
+                          className="bg-blue-500 text-white py-2 px-4 rounded mt-2"
+                          onClick={() => handleUploadButtonClick(session.id)}
+                        >
+                          Upload Receipt
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <button 
+                          className="bg-green-500 text-white py-2 px-4 rounded mt-2 mr-2"
+                          onClick={() => handleViewReceipt(session.receipt)}
+                        >
+                          {session.receipt}
+                        </button>
+                        {!session.paid && (
+                          <button 
+                            className="bg-red-500 text-white py-2 px-4 rounded mt-2"
+                            onClick={() => handleDeleteReceipt(session.id)}
+                          >
+                            Delete Receipt
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+
+              <h3 className="text-lg font-bold mt-4 mb-2">Past classes</h3>
+              <ul>
+                {sessions.filter(session => session.status === "done").map(session => (
+                  <li key={session.id} className="mb-4">
+                    <div>Date: {session.date} - Price: {session.price}</div>
+                    {session.receipt === " " ? (
+                      <div>
+                        <input 
+                          type="file" 
+                          className="border p-2 mt-2" 
+                          onChange={(e) => handleUploadReceipt(e, session.id)}
+                        />
+                        <button 
+                          className="bg-blue-500 text-white py-2 px-4 rounded mt-2"
+                          onClick={() => handleUploadButtonClick(session.id)}
+                        >
+                          Upload Receipt
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <button 
+                          className="bg-green-500 text-white py-2 px-4 rounded mt-2 mr-2"
+                          onClick={() => handleViewReceipt(session.receipt)}
+                        >
+                          {session.receipt}
+                        </button>
+                        {!session.paid && (
+                          <button 
+                            className="bg-red-500 text-white py-2 px-4 rounded mt-2"
+                            onClick={() => handleDeleteReceipt(session.id)}
+                          >
+                            Delete Receipt
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
         </div>
+
       ) : (
         <div className="flex justify-center items-center h-screen bg-gray-200">
           <div className="border-4 border-gray-300 rounded-full w-12 h-12 animate-spin"></div>
