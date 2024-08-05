@@ -1,10 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Student = require('./student');
+
 const cors = require('cors');
 const path = require('path');
-
+const fs = require('fs');
+const multer = require('multer');
 const dotenv = require('dotenv');
+
 dotenv.config({ path: '.env' });
 const app = express();
 
@@ -18,9 +21,18 @@ const PORT = process.env.PORT || 3000;
 const CONNECTION = process.env.CONNECTION;
 
 
+// Test endpoints
+
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
+
+app.post('/', (req, res) => {
+    res.send('This is a post request!');
+});
+
+
+// API endpoints
 
 app.get('/api/student/all', async (req, res) => {
     try {
@@ -93,7 +105,6 @@ app.patch('/api/student/:id/schedule', async (req, res) => {
     }
 });
 
-
 app.post('/api/student/clear', async (req, res) => {
     try {
 
@@ -104,10 +115,88 @@ app.post('/api/student/clear', async (req, res) => {
 });
 
 
-app.post('/', (req, res) => {
-    res.send('This is a post request!');
+// Storage engine
+
+const uploadDir = 'uploads/';
+const allowedFileTypes = /jpeg|jpg|png|gif|pdf/;
+
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const { studentId } = req.params;
+        const studentDir = path.join(__dirname, 'uploads', studentId);
+
+        if (!fs.existsSync(studentDir)) {
+            fs.mkdirSync(studentDir, { recursive: true });
+        }
+        cb(null, studentDir);
+    },
+    filename: (req, file, cb) => {
+        const { sessionId } = req.params;
+        const fileExtension = path.extname(file.originalname);
+        cb(null, `${sessionId}${fileExtension}`);
+    },
 });
 
+const fileFilter = (req, file, cb) => {
+    const mimeType = allowedFileTypes.test(file.mimetype);
+    const extName = allowedFileTypes.test(path.extname(file.originalname).toLowerCase());
+
+    if (mimeType && extName) {
+        return cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Only images and PDFs are allowed.'));
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 1000000 }, 
+    fileFilter: fileFilter,
+});
+
+
+// Storage endpoints
+
+app.post('/upload/:studentId/:sessionId', (req, res, next) => {
+    upload.any()(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'File is too large. Maximum size is 1MB.' });
+            }
+            return res.status(400).json({ error: err.message });
+        } else if (err) {
+            return res.status(500).json({ error: 'An unknown error occurred.' });
+        } else if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.json({ files: req.files });
+    });
+});
+
+app.use('/uploads', express.static(path.join(__dirname, uploadDir)));
+
+app.get('/files/:studentId/:filename', (req, res) => {
+    const { studentId, filename } = req.params;
+    const studentDir = path.join(__dirname, uploadDir, studentId);
+
+    fs.readdir(studentDir, (err, files) => {
+        if (err) {
+            return res.status(500).json({ error: 'Unable to read directory' });
+        }
+        const file = files.find(f => path.parse(f).name === filename);
+        if (file) {
+            const filePath = path.join(studentDir, file);
+            res.sendFile(filePath);
+        } else {
+            res.status(404).json({ error: 'File not found' });
+        }
+    });
+});
+
+
+
+// Start the server
 
 const start = async () => {
     const startTime = process.hrtime();
